@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><radialGradient id="g"><stop stop-color="#3b2412"/><stop offset="1" stop-color="#08070b"/></radialGradient></defs>
+<rect width="512" height="512" rx="112" fill="url(#g)"/>
+<circle cx="256" cy="256" r="190" fill="none" stroke="#e8b84f" stroke-width="18"/>
+<text x="256" y="245" text-anchor="middle" font-family="Arial,sans-serif" font-size="82" font-weight="900" fill="#fff">TÀI</text>
+<text x="256" y="325" text-anchor="middle" font-family="Arial,sans-serif" font-size="58" font-weight="900" fill="#e8b84f">XỈU AI</text>
+</svg>

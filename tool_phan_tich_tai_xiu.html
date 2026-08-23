@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tool phân tích Tài / Xỉu</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0d1020;color:#f4f6ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:720px;margin:auto;padding:18px}.card{background:#171b31;border:1px solid #2d3456;border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 10px 30px #0004}
+h1{font-size:24px;margin:0 0 6px}.muted{color:#9da6c7;font-size:13px}.row{display:flex;gap:10px;flex-wrap:wrap}
+button{border:0;border-radius:12px;padding:13px 20px;font-weight:700;font-size:16px;cursor:pointer}
+.tai{background:#e94d62;color:#fff}.xiu{background:#20b98b;color:#fff}.undo,.clear{background:#303753;color:#fff}
+input{width:100%;padding:14px;border-radius:12px;border:1px solid #343c60;background:#0e1222;color:white;font-size:16px}
+.seq{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;max-height:170px;overflow:auto}
+.ball{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800}.ball.T{background:#b9344d}.ball.X{background:#159b78}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:#101427;border-radius:13px;padding:12px}.num{font-size:22px;font-weight:800;margin-top:4px}
+.bar{height:12px;background:#303753;border-radius:20px;overflow:hidden;margin:10px 0}.bar i{display:block;height:100%;background:#20b98b}
+.result{font-size:17px;line-height:1.5}.warning{font-size:12px;color:#ffc978}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>📊 Tool phân tích Tài / Xỉu</h1>
+    <div class="muted">Nhập kết quả các phiên trước để xem thống kê và chuỗi. Tool không đảm bảo dự đoán kết quả phiên tiếp theo.</div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <button class="tai" onclick="add('T')">TÀI</button>
+      <button class="xiu" onclick="add('X')">XỈU</button>
+      <button class="undo" onclick="undo()">↩ Hoàn tác</button>
+      <button class="clear" onclick="clearAll()">Xóa</button>
+    </div>
+    <input id="manual" placeholder="Hoặc nhập chuỗi, ví dụ: TXXTTXTX">
+    <div class="row" style="margin-top:10px"><button class="undo" onclick="importSeq()">Nhập chuỗi</button></div>
+    <div id="seq" class="seq"></div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div class="stat"><div class="muted">Tổng phiên</div><div id="n" class="num">0</div></div>
+      <div class="stat"><div class="muted">Tài / Xỉu</div><div id="tx" class="num">0 / 0</div></div>
+      <div class="stat"><div class="muted">Chuỗi hiện tại</div><div id="streak" class="num">-</div></div>
+      <div class="stat"><div class="muted">Chuỗi dài nhất</div><div id="max" class="num">-</div></div>
+    </div>
+    <div style="margin-top:14px">Tài <span id="tp">0%</span></div>
+    <div class="bar"><i id="tb" style="width:0"></i></div>
+    <div>Xỉu <span id="xp">0%</span></div>
+  </div>
+
+  <div class="card">
+    <h3>🔎 Phân tích chuỗi</h3>
+    <div id="analysis" class="result">Chưa có dữ liệu.</div>
+  </div>
+
+  <div class="card">
+    <div class="warning">⚠️ Đây là công cụ thống kê dữ liệu lịch sử. Nếu trò chơi dùng RNG/công bằng ngẫu nhiên, chuỗi trước đó không tạo ra lợi thế chắc chắn cho phiên sau. Không có “cầu” nào đảm bảo thắng.</div>
+  </div>
+</div>
+<script>
+let data=[];
+function add(v){data.push(v);render()}
+function undo(){data.pop();render()}
+function clearAll(){data=[];render()}
+function importSeq(){
+  const s=document.getElementById('manual').value.toUpperCase().replace(/[^TX]/g,'');
+  if(s){data=s.split('');render()}
+}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function longest(){
+ let best={v:'',n:0},cur='',n=0;
+ for(const v of data){if(v===cur){n++}else{cur=v;n=1} if(n>best.n)best={v,n}}
+ return best.n?best.v+' × '+best.n:'-'
+}
+function render(){
+ const t=data.filter(x=>x==='T').length,x=data.length-t;
+ document.getElementById('n').textContent=data.length;
+ document.getElementById('tx').textContent=t+' / '+x;
+ const cur=data.length?data[data.length-1]:'', start=data.length-1;
+ while(start>=0 && data[start]===cur) start--;
+ const len=data.length-1-start;
+ document.getElementById('streak').textContent=cur?(cur==='T'?'Tài':'Xỉu')+' × '+len:'-';
+ document.getElementById('max').textContent=longest();
+ document.getElementById('tp').textContent=pct(t,data.length)+'%';
+ document.getElementById('xp').textContent=pct(x,data.length)+'%';
+ document.getElementById('tb').style.width=pct(t,data.length)+'%';
+ document.getElementById('xp').textContent=pct(x,data.length)+'%';
+ document.getElementById('seq').innerHTML=data.map((v,i)=>`<span class="ball ${v}">${i+1}<br>${v}</span>`).join('');
+ let changes=0;for(let i=1;i<data.length;i++)if(data[i]!==data[i-1])changes++;
+ let same=data.length>1?(data.length-1-changes):0;
+ let last10=data.slice(-10),t10=last10.filter(v=>v==='T').length,x10=last10.length-t10;
+ let msg='';
+ if(!data.length) msg='Chưa có dữ liệu.';
+ else {
+  msg+=`10 phiên gần nhất: <b>${t10} Tài / ${x10} Xỉu</b>.<br>`;
+  msg+=`Tỷ lệ đổi bên trong toàn bộ chuỗi: <b>${pct(changes,Math.max(1,data.length-1))}%</b>.<br>`;
+  msg+=`Các phiên liên tiếp cùng kết quả: <b>${same}</b> lần.`;
+ }
+ document.getElementById('analysis').innerHTML=msg;
+}
+render();
+</script>
+</body>
+</html>

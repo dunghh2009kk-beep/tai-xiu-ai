@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#090712">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tài Xỉu AI">
+<title>Tài Xỉu • Phân tích cầu</title>
+<style>
+:root{--bg:#090712;--panel:#171020;--panel2:#21132a;--gold:#d7a74a;--gold2:#ffd66b;--red:#d8324e;--green:#14bd85;--text:#fff7e8;--muted:#a99db0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% 0,#3b1838 0,#130b1a 35%,#07060c 75%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+.wrap{max-width:620px;margin:auto;padding:12px 12px 28px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.brand{font-weight:900;font-size:22px;letter-spacing:.5px}.brand span{color:var(--gold2)}
+.icon{width:40px;height:40px;border-radius:12px;border:1px solid #70512b;background:linear-gradient(#3a2514,#17101a);color:var(--gold2);font-size:20px}
+.panel{background:linear-gradient(145deg,#241426,#110c17);border:1px solid #5b3a45;border-radius:18px;box-shadow:0 12px 35px #0009;margin:10px 0;overflow:hidden}
+.head{padding:14px 16px;border-bottom:1px solid #49313f;display:flex;justify-content:space-between;align-items:center}
+.title{font-weight:900}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.body{padding:14px 16px}.gold{color:var(--gold2)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button{font:inherit;font-weight:900;cursor:pointer}
+.big{height:62px;border-radius:15px;border:1px solid #8b4a59;color:white;font-size:20px;box-shadow:inset 0 1px #fff3}.tai{background:linear-gradient(#e64c61,#9c1f36)}.xiu{background:linear-gradient(#23c997,#08775c)}
+.secondary{background:#2a2032;border:1px solid #4a3c50;color:#eee;border-radius:11px;padding:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap}.row .secondary{flex:1;min-width:120px}
+.seq{display:flex;gap:7px;overflow-x:auto;padding:4px 1px 10px;scrollbar-width:none}.seq::-webkit-scrollbar{display:none}
+.ball{flex:0 0 39px;height:39px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;border:2px solid #ffffff18;box-shadow:0 3px 9px #0007}.ball.T{background:linear-gradient(#f34f63,#8c1d34)}.ball.X{background:linear-gradient(#24cfa0,#08775c)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:#100b15;border:1px solid #392a40;border-radius:12px;padding:10px}.num{font-size:20px;font-weight:900;margin-top:3px}.muted{color:var(--muted);font-size:11px}
+.bar{height:10px;border-radius:20px;background:#302536;overflow:hidden;margin:8px 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#b72643,#ef5266)}
+.signal{border-radius:15px;padding:14px;background:linear-gradient(135deg,#281b13,#171018);border:1px solid #74512c}
+.signal .main{font-size:25px;font-weight:1000;margin:4px 0}.score{font-size:13px;color:#dbc99c}
+table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:9px 5px;border-bottom:1px solid #352735;text-align:left}th{color:#bfb1c1}
+input{width:100%;background:#0e0a13;color:#fff;border:1px solid #493849;border-radius:11px;padding:12px;font-size:15px;outline:none}
+.note{font-size:11px;line-height:1.5;color:#a99eac}.danger{color:#ffba74}
+.hidden{display:none}
+</style>
+<link rel="apple-touch-icon" href="icon.svg"></head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">TÀI <span>•</span> XỈU <span>AI</span></div>
+    <button class="icon" onclick="resetAll()">↻</button>
+  </div>
+
+  <section class="panel">
+    <div class="head"><div><div class="title">🎲 Nhập kết quả phiên</div><div class="sub">Bấm theo kết quả thực tế để tạo lịch sử cầu</div></div><div class="gold">● LIVE</div></div>
+    <div class="body">
+      <div class="actions">
+        <button class="big tai" onclick="add('T')">TÀI</button>
+        <button class="big xiu" onclick="add('X')">XỈU</button>
+      </div>
+      <div style="height:10px"></div>
+      <div class="row">
+        <button class="secondary" onclick="undo()">↩ Hoàn tác</button>
+        <button class="secondary" onclick="toggleImport()">⌨ Nhập chuỗi</button>
+        <button class="secondary" onclick="exportData()">💾 Lưu dữ liệu</button>
+      </div>
+      <div id="importBox" class="hidden" style="margin-top:10px">
+        <input id="inputSeq" placeholder="Ví dụ: TXXTTXTTX">
+        <button class="secondary" style="margin-top:7px;width:100%" onclick="importSeq()">Áp dụng</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><div><div class="title">Lịch sử cầu</div><div class="sub">Phiên mới nhất nằm bên phải</div></div><div id="count" class="gold">0 phiên</div></div>
+    <div class="body"><div id="seq" class="seq"></div><div id="empty" class="muted">Chưa có kết quả. Hãy nhập phiên đầu tiên.</div></div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><div><div class="title">📈 Thống kê</div><div class="sub">Tính trên dữ liệu bạn đã nhập</div></div></div>
+    <div class="body">
+      <div class="stats">
+        <div class="stat"><div class="muted">TÀI</div><div id="tCount" class="num">0</div></div>
+        <div class="stat"><div class="muted">XỈU</div><div id="xCount" class="num">0</div></div>
+        <div class="stat"><div class="muted">Đổi cầu</div><div id="switches" class="num">0</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:12px">Tài <span id="tp">0%</span> • Xỉu <span id="xp">0%</span></div>
+      <div class="bar"><i id="tbar" style="width:0"></i></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><div><div class="title">🤖 Phân tích cầu tự động</div><div class="sub">Nhận diện mẫu lịch sử, không đảm bảo kết quả kế tiếp</div></div></div>
+    <div class="body">
+      <div class="signal">
+        <div class="muted">MẪU HIỆN TẠI</div>
+        <div id="pattern" class="main">Chưa có dữ liệu</div>
+        <div id="detail" class="score">Nhập ít nhất 3 phiên để phân tích.</div>
+      </div>
+      <div style="height:12px"></div>
+      <div class="stats">
+        <div class="stat"><div class="muted">Chuỗi hiện tại</div><div id="current" class="num">-</div></div>
+        <div class="stat"><div class="muted">Dài nhất</div><div id="longest" class="num">-</div></div>
+        <div class="stat"><div class="muted">10 phiên</div><div id="last10" class="num">-</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="head"><div><div class="title">🧩 Các mẫu cầu</div><div class="sub">Thống kê mô tả trên lịch sử</div></div></div>
+    <div class="body">
+      <table><thead><tr><th>Mẫu</th><th>Trạng thái</th><th>Số lần</th></tr></thead>
+      <tbody id="patterns"></tbody></table>
+    </div>
+  </section>
+
+  <div class="note">⚠️ Tool chỉ phân tích chuỗi kết quả đã nhập. Với trò chơi dùng RNG/được thiết kế ngẫu nhiên, “cầu” không tạo ra khả năng thắng chắc chắn. Không nên dùng phân tích này như một cam kết dự đoán hay đặt cược.</div>
+</div>
+
+<script>
+let data=JSON.parse(localStorage.getItem('tx_data')||'[]');
+
+function save(){localStorage.setItem('tx_data',JSON.stringify(data))}
+function add(v){data.push(v);save();render()}
+function undo(){data.pop();save();render()}
+function resetAll(){if(confirm('Xóa toàn bộ lịch sử?')){data=[];save();render()}}
+function toggleImport(){document.getElementById('importBox').classList.toggle('hidden')}
+function importSeq(){
+ const s=document.getElementById('inputSeq').value.toUpperCase().replace(/[^TX]/g,'');
+ if(s){data=s.split('');save();render()}
+}
+function exportData(){
+ const blob=new Blob([data.join('')],{type:'text/plain'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lich-su-tai-xiu.txt';a.click();
+}
+function runLength(arr){
+ if(!arr.length)return {v:'-',n:0};
+ let best={v:arr[0],n:1},v=arr[0],n=1;
+ for(let i=1;i<arr.length;i++){if(arr[i]===v)n++;else{if(n>best.n)best={v,n};v=arr[i];n=1}}
+ if(n>best.n)best={v,n};return best;
+}
+function current(){return runLength(data)}
+function countSwitch(){let n=0;for(let i=1;i<data.length;i++)if(data[i]!=data[i-1])n++;return n}
+function pct(n,d){return d?Math.round(n/d*100):0}
+function patternName(){
+ if(data.length<3)return ['Chưa đủ dữ liệu','Cần ít nhất 3 phiên để nhận diện mẫu.'];
+ const c=current(), last=data.slice(-6).join('');
+ if(c.n>=4)return [`BỆT ${c.v==='T'?'TÀI':'XỈU'} × ${c.n}`,`Chuỗi hiện tại đang lặp cùng một phía ${c.n} phiên.`];
+ if(last.length>=4){
+   const alt=last.split('').every((v,i,a)=>i===0||v!==a[i-1]);
+   if(alt)return ['XEN KẼ','Các phiên gần nhất đang có xu hướng Tài/Xỉu luân phiên.'];
+ }
+ if(last.includes('TT')||last.includes('XX'))return ['CẦU 2','Lịch sử gần đây có cụm kết quả lặp 2 phiên.'];
+ return ['CẦU HỖN HỢP','Chưa thấy mẫu đơn giản nổi bật trong dữ liệu hiện tại.'];
+}
+function render(){
+ const t=data.filter(v=>v==='T').length,x=data.length-t, sw=countSwitch(),c=current(),b=runLength(data);
+ document.getElementById('count').textContent=data.length+' phiên';
+ document.getElementById('tCount').textContent=t;document.getElementById('xCount').textContent=x;document.getElementById('switches').textContent=sw;
+ document.getElementById('tp').textContent=pct(t,data.length)+'%';document.getElementById('xp').textContent=pct(x,data.length)+'%';document.getElementById('tbar').style.width=pct(t,data.length)+'%';
+ document.getElementById('seq').innerHTML=data.map((v,i)=>`<span class="ball ${v}" title="Phiên ${i+1}">${i+1}<br>${v}</span>`).join('');
+ document.getElementById('empty').style.display=data.length?'none':'block';
+ document.getElementById('current').textContent=c.n?(c.v==='T'?'Tài':'Xỉu')+' ×'+c.n:'-';
+ document.getElementById('longest').textContent=b.n?(b.v==='T'?'Tài':'Xỉu')+' ×'+b.n:'-';
+ const l10=data.slice(-10),lt=l10.filter(v=>v==='T').length;document.getElementById('last10').textContent=l10.length?lt+'T/'+(l10.length-lt)+'X':'-';
+ const [pn,pd]=patternName();document.getElementById('pattern').textContent=pn;document.getElementById('detail').textContent=pd;
+ const rows=[
+  ['Bệt Tài',c.v==='T'&&c.n>=2?'Đang có':'Không nổi bật',data.filter((v,i)=>v==='T'&&(i===0||data[i-1]!=='T')).length],
+  ['Bệt Xỉu',c.v==='X'&&c.n>=2?'Đang có':'Không nổi bật',data.filter((v,i)=>v==='X'&&(i===0||data[i-1]!=='X')).length],
+  ['Xen kẽ',data.length>=4&&data.slice(-4).every((v,i,a)=>i===0||v!==a[i-1])?'Đang có':'Không nổi bật',sw],
+  ['Tài/Xỉu cân bằng',data.length&&Math.abs(t-x)<=1?'Gần cân bằng':'Không cân bằng',Math.min(t,x)]
+ ];
+ document.getElementById('patterns').innerHTML=rows.map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('');
+}
+render();
+</script>
+<script>if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}</script></body>
+</html>
